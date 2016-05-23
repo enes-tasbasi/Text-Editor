@@ -15,7 +15,7 @@ public class TextEditor {
 	public static void main(String[] args) {
 		
 		JFrame frame = new JFrame("Editor");
-		
+	
 		try {
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 		} catch (ClassNotFoundException e) {
@@ -30,7 +30,7 @@ public class TextEditor {
 
 		SwingUtilities.updateComponentTreeUI(frame);
 		
-		frame.setContentPane(new DefaultPanel());
+		frame.setContentPane(new Panel());
 		frame.setSize(700, 500);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);

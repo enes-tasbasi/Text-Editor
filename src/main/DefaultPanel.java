@@ -1,8 +1,11 @@
 package main;
 
 import java.awt.*;
+import java.awt.List;
 import java.awt.event.*;
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.*;
 
 import javax.swing.*;
@@ -12,6 +15,10 @@ import javax.swing.text.rtf.*;
 
 import com.inet.jortho.*;
 import com.itextpdf.text.pdf.*;
+
+import java.nio.file.*;
+import static java.nio.file.StandardOpenOption.*;
+
 
 public class DefaultPanel extends JPanel {
 	
@@ -24,10 +31,10 @@ public class DefaultPanel extends JPanel {
 	private JMenuItem bold;
 	private MutableAttributeSet set;
 	private StyledDocument doc;
-	private RTFEditorKit rtf;
 	private JLabel label;
 	private String loc;
 	private String info = "";
+	
 	
 	public DefaultPanel() {
 		
@@ -124,7 +131,7 @@ public class DefaultPanel extends JPanel {
 		});
 		menu.add(item4);
 		
-		JMenu menu3 = new JMenu("PDF");
+
 		
 		JMenuItem pdf = new JMenuItem("Export to PDF");
 		pdf.addActionListener(new ActionListener() {
@@ -139,9 +146,20 @@ public class DefaultPanel extends JPanel {
 				
 			}
 		});
-		menu3.add(pdf);
 		
-		menuBar.add(menu3);
+		
+		JMenu menu4 = new JMenu("Utilities");
+		menu4.setMnemonic(KeyEvent.VK_U);
+		
+		JMenuItem find = new JMenuItem("Find");
+		find.setMnemonic(KeyEvent.VK_F);
+		find.addActionListener(new Listener9());
+		
+		
+		menu4.add(pdf);
+		menu4.add(find);
+		
+		menuBar.add(menu4);
 		panel.add(menuBar);
 		
 		//panel2 for the textPane
@@ -277,6 +295,16 @@ public class DefaultPanel extends JPanel {
 			}
 		}
 		
+		public class Listener9 implements ActionListener {
+			public void actionPerformed(ActionEvent e) {
+				String toFind = JOptionPane.showInputDialog(null, "Enter the word you want to find");
+				
+				int instances = findWords(textPane.getText(), toFind);
+				JOptionPane.showMessageDialog(null, "There are " + instances + " instances of " + toFind);
+				
+			}
+		}
+		
 		public class caretListener implements CaretListener {
 
 			@Override
@@ -316,25 +344,16 @@ public class DefaultPanel extends JPanel {
 				Save();
 			}
 			
-			JFileChooser dir = new JFileChooser(new File("C://"));
+			JFileChooser dir = new JFileChooser(new File("C://Users//Bera//Desktop"));
 			
 			int returnVal = dir.showSaveDialog(dir);
 			
 	        if (returnVal == JFileChooser.APPROVE_OPTION) {
-	        
-	       
-	        	
-	        	try {
-					FileWriter fw = new FileWriter(dir.getSelectedFile() + ".rtf");
-					firstTime = false;
-					fw.write(textPane.getText());
-					sb.equals(textPane.getText());
-					
-					
-					fw.close();
-				} catch (IOException e) {
-					info = "Cannot save the file specified";
-				}
+	        	try{
+	        		new FileSaver(textPane.getText(), dir.getSelectedFile());
+	        	} catch(IOException e) {
+	        		e.printStackTrace();
+	        	}
 	        		
 	        }  else {
 	        	info = "Canceled by user";
@@ -358,20 +377,28 @@ public class DefaultPanel extends JPanel {
 	        }
 	        
 			try {
-				
-				FileInputStream fi = new FileInputStream(file);
-				rtf.read(fi, textPane.getDocument(), 0);
-				
-//				in = new Scanner(file);
-//				while(in.hasNext()) {
-//					sb.append(in.nextLine());
-//				}
-//				
-//				textPane.setText(sb.toString());
-				
-			} catch (Exception e1) {
-				info = "The file is not found.";
-			} 
+				 
+				 
+				 in = new Scanner(file);
+					while(in.hasNext()) {
+						sb.append(sb.toString() + "" + in.nextLine());
+					}
+					
+					textPane.setText(sb.toString());	
+				 
+//			            BufferedReader br = new BufferedReader(new FileReader(file));
+//			            try {
+//			                String x;
+//			                while ( (x = br.readLine()) != null ) {
+//			                    x = x + (x = br.readLine());
+//			                } 
+//			                
+//			                textPane.setText(x);
+			            
+			        } catch (IOException e) {
+			            e.printStackTrace();
+			        }
+			
 			
 			firstTime = false;
 		}
@@ -487,6 +514,22 @@ public class DefaultPanel extends JPanel {
 		
 		public void updateStatus() {
 			label.setText(loc + "               " + info);
+		}
+		
+		public int findWords(String passage, String toFind) {
+			passage = passage.toLowerCase();
+			toFind = toFind.toLowerCase();
+			String[] word = passage.split(" ");
+			int count = 0;
+			for(int i = 0; i < word.length; i++) {
+				if(word[i].equals(toFind)) {
+					count++;
+					
+				}
+			}
+			
+			return count;
+			
 		}
 }
 
