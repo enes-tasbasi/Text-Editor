@@ -16,7 +16,8 @@ public class Panel extends JPanel {
 	//variables
 	private JTextPane textPane;
 	private JLabel label;
-	private SimpleAttributeSet set;
+	private MutableAttributeSet set;
+	private StyledDocument doc;
 	private File file;
 	private StringBuilder sb;
 	private Boolean fileOpen = false;
@@ -153,15 +154,25 @@ public class Panel extends JPanel {
 		
 		add(panePanel);
 		
-		//--------------------- finish textPane and bottom label -------------//
+		//--------------------- textPane and bottom label complete -------------//
 		
 		// add the spell checker
 		SpellChecker.setUserDictionaryProvider(new FileUserDictionary());      
 		SpellChecker.registerDictionaries( null, null );
 	    SpellChecker.register(textPane);
 	    
-	    //declare stringbuilder for later use
+	    //declare varibales  for later use
 	    sb = new StringBuilder("");
+	    
+	    set = textPane.getInputAttributes();
+	    
+	    doc = textPane.getStyledDocument();
+
+	    FontFamily("Rockwell");
+	    
+	    FontSize(20);
+	    
+	    textPane.setText(" ");
 	    
 	    
 	}
@@ -181,6 +192,42 @@ public class Panel extends JPanel {
     			break;
     		case "Save As" :
     			SaveAs();
+    			break;
+    		case "Bold" :
+    			if(StyleConstants.isBold(set) == false) {
+					Bold();
+				}
+				else {
+					ClearBold();
+				}
+    			break;
+    		case "Italic" :
+    			if(StyleConstants.isItalic(set) == false) {
+					Italic();
+				}
+				else {
+					ClearItalic();
+				}
+    			break;
+    		case "Underline" :
+    			if(StyleConstants.isUnderline(set) == false) {
+					Underline();
+				}
+				else {
+					ClearUnderline();
+				}
+    			break;
+    		case "Font size" :
+    			String size = (String) JOptionPane.showInputDialog("Enter the font size");
+				FontSize(Integer.parseInt(size));
+    			break;
+    		case "Choose Font" :
+				GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+				String[] fnt = ge.getAvailableFontFamilyNames();
+				
+				String input = (String) JOptionPane.showInputDialog(null, "Choose the font ", 
+						"Font", JOptionPane.QUESTION_MESSAGE, null, fnt, fnt[0]);
+				FontFamily(input);
     			break;
     		}
     		
@@ -204,12 +251,24 @@ public class Panel extends JPanel {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
         	
         	file = dir.getSelectedFile();
+        	System.out.println(textPane.getText());
         	
-        	try {
-	        	FileWriter fw = new FileWriter(file);
-	        	sb.equals(textPane.getText());
-	    		fw.write(textPane.getText());
-	    		fw.close();
+        	try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)))) {
+        		
+        		//method #1
+//	        	FileWriter fw = new FileWriter(file);
+//	        	sb.equals(textPane.getText());
+//	    		fw.write(textPane.getText());
+//	    		fw.flush();
+//	    		fw.close();
+        		
+        		//method #2
+        		
+        		 
+        			pw.println(textPane.getText());
+        			
+        		
+        		
 	    		
         	} catch(IOException e) {
         		e.printStackTrace();
@@ -225,14 +284,12 @@ public class Panel extends JPanel {
     
     private void Save() {
     	if(fileOpen == true) {
-	    	BufferedWriter out;
-			try {
-				out = new BufferedWriter(new FileWriter(file));
-				Document doc = textPane.getStyledDocument();
+	    	
+			try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
+				
 				out.write(textPane.getText());
 				sb.equals(textPane.getText());
 				
-				out.close();
 			} catch (IOException e1) {
 				//TODO: write updateInfo
 			}
@@ -263,25 +320,28 @@ public class Panel extends JPanel {
         }
         
 		try {
+			 sb.equals("");
 			 
-			 
-			// Scanner in = new Scanner(file);
-//				while(in.hasNext()) {
-//					sb.append(sb.toString() + "" + in.nextLine());
-//				}
-//				
-//				textPane.setText(sb.toString());
+			 Scanner in = new Scanner(file);
+				while(in.hasNext()) {
+					String line = in.nextLine();
+					sb.append(line).append("\n");
+				}
+				
+				textPane.setText(sb.toString());
 			
-			FileReader fr = new FileReader(file);
-			BufferedReader br = new BufferedReader(fr);
+			// method #2
 			
-			String x;
-			while((x = br.readLine()) != null) {
-				sb.append(x + "\n");
-			}
-			
-			textPane.setText(sb.toString());
-			br.close();
+//			FileReader fr = new FileReader(file);
+//			BufferedReader br = new BufferedReader(fr);
+//			
+//			String x;
+//			while((x = br.readLine()) != null) {
+//				sb.append(x + "\n");
+//			}
+//			
+//			textPane.setText(sb.toString());
+//			br.close();
 			
 			fileOpen = true;
 			
@@ -289,4 +349,48 @@ public class Panel extends JPanel {
 			//TODO: write updateInfo
 		}
     }
+    
+    //---------------- all the font classes -------------------//
+    
+    private void Bold() {
+    	StyleConstants.setBold(set, true);
+    	doc.setCharacterAttributes(1, 0, set, false);
+    }
+    
+    private void ClearBold() {
+    	StyleConstants.setBold(set, false);
+    	doc.setCharacterAttributes(1, 0, set, false);
+    }
+    
+    private void Italic() {
+    	StyleConstants.setItalic(set, true);
+    	doc.setCharacterAttributes(1, 0, set, false);
+    }
+    
+    private void ClearItalic() {
+    	StyleConstants.setItalic(set, false);
+    	doc.setCharacterAttributes(1, 0, set, false);
+    }
+    
+    private void Underline() {
+    	StyleConstants.setUnderline(set, true);
+    	doc.setCharacterAttributes(1, 0, set, false);
+    }
+    
+    private void ClearUnderline() {
+    	StyleConstants.setUnderline(set, false);
+    	doc.setCharacterAttributes(1, 0, set, false);
+    }
+    
+    private void FontSize(int size) {
+    	StyleConstants.setFontSize(set, size);
+    	doc.setCharacterAttributes(1, 0, set, false);
+    }
+    
+    private void FontFamily(String font) {
+    	StyleConstants.setFontFamily(set, font);
+    	doc.setCharacterAttributes(1, 0, set, false);
+    }
+    
+    //------------------------------------//
 }
