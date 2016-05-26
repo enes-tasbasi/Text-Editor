@@ -4,12 +4,14 @@ import javax.swing.*;
 import javax.swing.filechooser.*;
 import javax.swing.text.*;
 
+import org.apache.commons.io.*;
+
 import com.inet.jortho.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.Scanner;
+import java.util.*;
 
 public class Panel extends JPanel {
 	
@@ -235,52 +237,49 @@ public class Panel extends JPanel {
     }
     
     private void SaveAs() {
-    	
-    	if( fileOpen == true) {
-			Save();
-			file = null;
-		}
-    	
-    	JFileChooser dir = new JFileChooser(new File("C://Users//Bera//Desktop"));
-    	
-    	FileNameExtensionFilter filter = new FileNameExtensionFilter("TEXT FILES", "txt", "text");
-    	dir.setFileFilter(filter);
-    	
-    	int returnVal = dir.showSaveDialog(dir);
-    	
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-        	
-        	file = dir.getSelectedFile();
-        	System.out.println(textPane.getText());
-        	
-        	try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)))) {
-        		
-        		//method #1
-//	        	FileWriter fw = new FileWriter(file);
-//	        	sb.equals(textPane.getText());
-//	    		fw.write(textPane.getText());
-//	    		fw.flush();
-//	    		fw.close();
-        		
-        		//method #2
-        		
-        		 
-        			pw.println(textPane.getText());
-        			
-        		
-        		
-	    		
-        	} catch(IOException e) {
-        		e.printStackTrace();
-        	}
-        	
-        	fileOpen = true;
-        }
-        
-        else {
-        	//TODO: write updateInfo code
-        }
+    	   
+        if( fileOpen == true) {
+    Save();
+    file = null;
     }
+       
+        JFileChooser dir = new JFileChooser(new File("C://Users//Bera//Desktop"));
+       
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("TEXT FILES", "txt", "text");
+        dir.setFileFilter(filter);
+       
+        int returnVal = dir.showSaveDialog(dir);
+       
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+           
+            file = dir.getSelectedFile();
+           
+            try {
+            	
+//	            FileWriter fw = new FileWriter(file);
+//	            sb.equals(textPane.getText());
+//	            fw.write(textPane.getText());
+//	            fw.close();	
+            	
+//            	sb.equals(textPane.getText());
+//            	
+//            	Formatter x = new Formatter(file);
+//            	x.format(sb.toString());
+//            	x.close();
+            	
+            	FileUtils.writeStringToFile(file, textPane.getText());
+        
+            } catch(IOException e) {
+            e.printStackTrace();
+            }
+           
+            fileOpen = true;
+            }
+            
+            else {
+            //TODO: write updateInfo code
+            }
+        }
     
     private void Save() {
     	if(fileOpen == true) {
