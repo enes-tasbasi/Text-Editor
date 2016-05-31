@@ -1,12 +1,17 @@
 package main;
 
 import javax.swing.*;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.filechooser.*;
 import javax.swing.text.*;
 
 import org.apache.commons.io.*;
 
 import com.inet.jortho.*;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfTemplate;
+import com.itextpdf.text.pdf.PdfWriter;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -23,6 +28,7 @@ public class Panel extends JPanel {
 	private File file;
 	private StringBuilder sb;
 	private Boolean fileOpen = false;
+	private String loc;
 	
 	//constructor
 	public Panel() {
@@ -145,7 +151,7 @@ public class Panel extends JPanel {
 		panePanel.setLayout(new BorderLayout());
 		
 		textPane = new JTextPane();
-//		textPane.addCaretListener(new caretListener());
+		textPane.addCaretListener(new caretListener());
 		
 		label = new JLabel("Status");
 		panePanel.add(label, BorderLayout.PAGE_END);
@@ -231,10 +237,35 @@ public class Panel extends JPanel {
 						"Font", JOptionPane.QUESTION_MESSAGE, null, fnt, fnt[0]);
 				FontFamily(input);
     			break;
+    		case "Export to PDF" :
+    			JFileChooser dir = new JFileChooser(new File("C://"));
+				
+				int returnVal = dir.showSaveDialog(dir);
+				
+		        if (returnVal == JFileChooser.APPROVE_OPTION) {
+		        	PDF(dir.getSelectedFile());
+		        }
+    			break;
+    		case "Find" :
+    			String toFind = JOptionPane.showInputDialog(null, "Enter the word you want to find");
+				
+				int instances = findWords(textPane.getText(), toFind);
+				JOptionPane.showMessageDialog(null, "There are " + instances + " instances of " + toFind);
+    			break;
     		}
     		
     	}
     }
+    
+	public class caretListener implements CaretListener {
+
+		@Override
+		public void caretUpdate(CaretEvent e) {
+			loc = e.toString();
+			updateStatus();
+		}
+		
+	}
     
     private void SaveAs() {
     	   
@@ -270,14 +301,14 @@ public class Panel extends JPanel {
             	FileUtils.writeStringToFile(file, textPane.getText());
         
             } catch(IOException e) {
-            e.printStackTrace();
+            updateStatus("An exception occurred while saving");
             }
            
             fileOpen = true;
             }
             
             else {
-            //TODO: write updateInfo code
+            	updateStatus("Request cancelled by user");
             }
         }
     
@@ -290,7 +321,7 @@ public class Panel extends JPanel {
 				sb.equals(textPane.getText());
 				
 			} catch (IOException e1) {
-				//TODO: write updateInfo
+				updateStatus("Could not save the file");
 			}
     	} else {
     		SaveAs();
@@ -315,7 +346,7 @@ public class Panel extends JPanel {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             file = fc.getSelectedFile();
         } else {
-          //TODO: write updateInfo method
+        	updateStatus("Request cancelled by user.");
         }
         
 		try {
@@ -345,7 +376,7 @@ public class Panel extends JPanel {
 			fileOpen = true;
 			
 		} catch(IOException e) {
-			//TODO: write updateInfo
+			updateStatus("An error occurred while opening.");
 		}
     }
     
@@ -392,4 +423,75 @@ public class Panel extends JPanel {
     }
     
     //------------------------------------//
+    
+    private void PDF(File file) {
+		com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+		
+        	try {
+	    		PdfWriter writer;
+	    		  writer = PdfWriter.getInstance(document,
+	    		            new FileOutputStream(file));
+	    		
+	    		document.open();
+	    		
+	    		PdfContentByte cb = writer.getDirectContent();
+	    		PdfTemplate tp = cb.createTemplate(1000,1000);
+	    		
+	    		Graphics2D g2;
+	    		
+	    		g2 = tp.createGraphics( 500, 500);
+	    		
+	    		textPane.print(g2);
+	    		g2.dispose();
+	    		
+	    		cb.addTemplate(tp, 30, 300);
+	    		
+	    		//info = "Success.";
+	    	}  catch (Exception e) {
+	    	    updateStatus("uncessesful");
+	    	}
+	    	
+	    	document.close();
+	    	
+	    	File f = new File(file.getAbsolutePath());
+	    	
+	    	if(!Desktop.isDesktopSupported()){
+	            System.out.println("Desktop is not supported");
+	            return;
+	        }
+	    	
+	    	Desktop desktop = Desktop.getDesktop();
+	    	if(file.exists())
+				try {
+					desktop.open(file);
+					
+			
+				} catch (IOException e) {
+					updateStatus("The file doesn't exist.");
+				}
+    }
+    
+    private int findWords(String passage, String toFind) {
+		passage = passage.toLowerCase();
+		toFind = toFind.toLowerCase();
+		String[] word = passage.split(" ");
+		int count = 0;
+		for(int i = 0; i < word.length; i++) {
+			if(word[i].equals(toFind)) {
+				count++;
+				
+			}
+		}
+		
+		return count;
+		
+	}
+    
+    private void updateStatus() {
+		label.setText(loc);
+	}
+    
+    private void updateStatus(String info) {
+    	label.setText(loc + "             ---   " + info);
+    }
 }
