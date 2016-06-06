@@ -9,9 +9,7 @@ import javax.swing.text.*;
 import org.apache.commons.io.*;
 
 import com.inet.jortho.*;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfTemplate;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.*;
 
 import java.awt.*;
 import java.awt.event.*;
